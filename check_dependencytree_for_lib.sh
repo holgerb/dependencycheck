@@ -1,14 +1,25 @@
 #!/bin/bash
 libpattern=$1
+directory=$2
 slash="/"
 clear
+
 if [[ -z "$libpattern" ]]; then
-  echo "please provide a lib pattern."
+  echo "Please provide a lib pattern."
   exit 16
 fi
+
+if [[ -z "$directory" ]]; then
+  echo "Please provide a directory."
+  exit 17
+fi
+
+echo "Searching for $1 in $2"
+cd "$directory" || exit
+
 find . -name 'pom.xml' -or -name 'build.gradle*' -type f | sed -r 's|/[^/]+$||' | sort | uniq | grep -v '.terraform' | while IFS= read -r d; do
   STEP_BACK_COUNT=$(awk -F"${slash}" '{print NF-1}' <<<"${d}")
-  cd $d
+  cd $d || exit
 
   if [ -n "$(ls | grep -i "pom.xml")" ]; then
     echo "Analysing maven project: $d"
@@ -30,6 +41,6 @@ find . -name 'pom.xml' -or -name 'build.gradle*' -type f | sed -r 's|/[^/]+$||' 
   for ((n = 0; n < $STEP_BACK_COUNT; n++)); do
     cd ..
   done
-
 done
+
 exit 0
